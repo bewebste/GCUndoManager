@@ -13,6 +13,7 @@
 // 2011/07/08 - added NSUndoManagerDidCloseUndoGroupNotification for 10.7 (Lion) compatibility
 
 #import <Cocoa/Cocoa.h>
+#import "BWForwardingProxy.h"
 
 // internal undo manager state is one of these constants
 
@@ -39,7 +40,7 @@ GCUndoTaskCoalescingKind;
 // Core Data is unknown and untested at this time. See further notes at the end of this file.
 
 
-@interface GCUndoManager : NSObject
+@interface GCUndoManager : NSObject <BWForwardingProxyDelegate>
 {
 @private
 	NSMutableArray*		mUndoStack;				// list of groups making up the undo stack
@@ -55,6 +56,7 @@ GCUndoTaskCoalescingKind;
 	GCUndoManagerState	mState;					// current undo manager state
 	GCUndoTaskCoalescingKind mCoalKind;			// coalescing behaviour - match on most recent task or all tasks in group
 	id					mDelegate;
+	NSMutableDictionary* mForwardingProxies;
 	BOOL				mGroupsByEvent;			// YES if automatic grouping occurs for the main loop event cycle
 	BOOL				mCoalescing;			// YES if consecutive tasks are coalesced
 	BOOL				mAutoDeleteEmptyGroups;	// YES if empty groups are automatically removed from the stack
@@ -158,6 +160,8 @@ GCUndoTaskCoalescingKind;
 - (id)					delegate;
 - (void)				setDelegate:(id)newDelegate;
 
+- (id)					forwardingProxyForKey:(NSString*)inKey create:(BOOL)createFlag;
+
 #pragma mark -
 // internal methods - public to permit overriding
 
@@ -198,7 +202,7 @@ GCUndoTaskCoalescingKind;
 
 @interface NSObject(GCUndoManagerDelegate)
 
-- (id)undoManager:(GCUndoManager*)inUndoManager replacementTargetForTarget:(id)inTarget;
+- (id)undoManager:(GCUndoManager*)inUndoManager forwardingTargetForKey:(NSString*)inKey;
 
 @end
 

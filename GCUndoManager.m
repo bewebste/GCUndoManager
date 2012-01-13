@@ -7,6 +7,7 @@
 //
 
 #import "GCUndoManager.h"
+#import "BWForwardingProxy.h"
 
 // this proxy object is returned by -prepareWithInvocationTarget: if GCUM_USE_PROXY is 1. This provides a similar behaviour to NSUndoManager
 // on 10.6 so that a wider range of methods can be submitted as undo tasks. Unlike 10.6 however, it does not bypass um's -forwardInvocation:
@@ -454,18 +455,14 @@
 	// Records the target and returns either the proxy or self. The proxy allows methods also implemented by this class
 	// to be recorded as forward invocations, and is generally a good idea (Snow Leopard does the same, but not in
 	// a way that is backward compatible with overrides of -forwardInvocation: This implementation does not have that bug.
-	id	realTarget = target;
-	
-	if ([[self delegate] respondsToSelector:@selector(undoManager:replacementTargetForTarget:)])
-		realTarget = [[self delegate] undoManager:self replacementTargetForTarget:target];
 	if( mProxy )
 	{
-		[mProxy gcum_setTarget:realTarget];
+		[mProxy gcum_setTarget:target];
 		return mProxy;
 	}
 	else
 	{
-		mNextTarget = realTarget;
+		mNextTarget = target;
 		return self;
 	}
 }
@@ -698,6 +695,31 @@
 - (void)				setDelegate:(id)newDelegate
 {
 	mDelegate = newDelegate;
+}
+
+- (id)					forwardingProxyForKey:(NSString*)inKey create:(BOOL)createFlag
+{
+	BWForwardingProxy*		proxy = nil;
+	
+	if (mForwardingProxies == nil)
+		mForwardingProxies = [[NSMutableDictionary alloc] init];
+	proxy = [mForwardingProxies objectForKey:inKey];
+	if (proxy == nil && createFlag)
+	{
+		proxy = [[BWForwardingProxy alloc] init];
+		proxy.bw_proxyDelegate = self;
+		proxy.bw_proxyIdentifier = inKey;
+	}
+	return proxy;
+}
+
+- (id)forwardingTargetForProxy:(BWForwardingProxy *)inProxy
+{
+	id			target = nil;
+	
+	if ([self.delegate respondsToSelector:@selector(undoManager:forwardingTargetForKey:)])
+		target = [self.delegate undoManager:self forwardingTargetForKey:inProxy.bw_proxyIdentifier];
+	return target;
 }
 
 - (void)				conditionallyBeginUndoGrouping
