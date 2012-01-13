@@ -454,15 +454,18 @@
 	// Records the target and returns either the proxy or self. The proxy allows methods also implemented by this class
 	// to be recorded as forward invocations, and is generally a good idea (Snow Leopard does the same, but not in
 	// a way that is backward compatible with overrides of -forwardInvocation: This implementation does not have that bug.
+	id	realTarget = target;
 	
+	if ([[self delegate] respondsToSelector:@selector(undoManager:replacementTargetForTarget:)])
+		realTarget = [[self delegate] undoManager:self replacementTargetForTarget:target];
 	if( mProxy )
 	{
-		[mProxy gcum_setTarget:target];
+		[mProxy gcum_setTarget:realTarget];
 		return mProxy;
 	}
 	else
 	{
-		mNextTarget = target;
+		mNextTarget = realTarget;
 		return self;
 	}
 }
@@ -687,6 +690,15 @@
 	mChangeCount = 0;
 }
 
+- (id)					delegate
+{
+	return mDelegate;
+}
+
+- (void)				setDelegate:(id)newDelegate
+{
+	mDelegate = newDelegate;
+}
 
 - (void)				conditionallyBeginUndoGrouping
 {
@@ -1445,6 +1457,10 @@
 	return [mInvocation selector];
 }
 
+- (BOOL)				targetRetained
+{
+	return mTargetRetained;
+}
 
 #pragma mark -
 #pragma mark - as a GCUndoTask

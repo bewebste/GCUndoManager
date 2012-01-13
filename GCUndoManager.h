@@ -54,6 +54,7 @@ GCUndoTaskCoalescingKind;
 	NSInteger			mChangeCount;			// count of changes (submitting any task increments this)
 	GCUndoManagerState	mState;					// current undo manager state
 	GCUndoTaskCoalescingKind mCoalKind;			// coalescing behaviour - match on most recent task or all tasks in group
+	id					mDelegate;
 	BOOL				mGroupsByEvent;			// YES if automatic grouping occurs for the main loop event cycle
 	BOOL				mCoalescing;			// YES if consecutive tasks are coalesced
 	BOOL				mAutoDeleteEmptyGroups;	// YES if empty groups are automatically removed from the stack
@@ -154,6 +155,9 @@ GCUndoTaskCoalescingKind;
 - (NSInteger)			changeCount;
 - (void)				resetChangeCount;
 
+- (id)					delegate;
+- (void)				setDelegate:(id)newDelegate;
+
 #pragma mark -
 // internal methods - public to permit overriding
 
@@ -189,6 +193,12 @@ GCUndoTaskCoalescingKind;
 // debugging utility:
 
 - (void)				explodeTopUndoAction;
+
+@end
+
+@interface NSObject(GCUndoManagerDelegate)
+
+- (id)undoManager:(GCUndoManager*)inUndoManager replacementTargetForTarget:(id)inTarget;
 
 @end
 
@@ -264,6 +274,7 @@ GCUndoTaskCoalescingKind;
 - (void)				setTarget:(id) target retained:(BOOL) retainIt;
 - (id)					target;
 - (SEL)					selector;
+- (BOOL)				targetRetained;
 
 @end
 
