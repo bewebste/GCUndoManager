@@ -709,6 +709,7 @@
 		proxy = [[BWForwardingProxy alloc] init];
 		proxy.bw_proxyDelegate = self;
 		proxy.bw_proxyIdentifier = inKey;
+		[mForwardingProxies setObject:proxy forKey:inKey];
 	}
 	return proxy;
 }
