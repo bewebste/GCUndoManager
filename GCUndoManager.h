@@ -13,7 +13,7 @@
 // 2011/07/08 - added NSUndoManagerDidCloseUndoGroupNotification for 10.7 (Lion) compatibility
 
 #import <Cocoa/Cocoa.h>
-#import "BWForwardingProxy.h"
+#import <BWViewControllers/BWForwardingProxy.h>
 
 // internal undo manager state is one of these constants
 
